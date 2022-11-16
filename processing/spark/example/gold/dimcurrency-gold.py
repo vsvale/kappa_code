@@ -43,9 +43,7 @@ if __name__ == '__main__':
         .addColumn("CurrencyKey", IntegerType()) \
         .addColumn("CurrencyAlternateKey", StringType()) \
         .addColumn("CurrencyName", StringType()) \
-        .addColumn("create_at", TimestampType()) \
-        .addColumn("load_date", DateType(), generatedAlwaysAs="CAST(create_at AS DATE)") \
-        .partitionedBy("load_date") \
+        .partitionedBy("CurrencyKey") \
         .location(destination_folder) \
         .execute()
     
