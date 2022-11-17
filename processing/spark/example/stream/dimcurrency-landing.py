@@ -47,7 +47,7 @@ if __name__ == '__main__':
                 col('CurrencyAlternateKey').cast(StringType()),
                 col('CurrencyName').cast(StringType())
             )
-        ).alias("value")
+        ).alias("value"), col('CurrencyKey').cast(StringType()).alias('key')
     )
 
     # trigger using processing time = interval of the micro-batches
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         .option("topic", destination_topic) \
         .option("checkpointLocation", "checkpoint") \
         .outputMode("append") \
-        .trigger(processingTime="60 seconds") \
+        .trigger(processingTime="120 seconds") \
         .start()  \
         
     # monitoring streaming queries
