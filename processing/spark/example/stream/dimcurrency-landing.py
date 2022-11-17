@@ -3,6 +3,7 @@ from settings import BOOTSTRAP_SERVERS
 from delta.tables import DeltaTable
 from pyspark.sql import SparkSession
 from schemas import schemadimcurrency
+from pyspark.sql.functions import *
 
 # main spark program
 if __name__ == '__main__':
@@ -32,12 +33,22 @@ if __name__ == '__main__':
     # refer to schema.py file
     schema = schemadimcurrency
     
-    origin_folder = "s3a://landing/example/dw-files/DimCurrency.csv"
+    origin_folder = "s3a://landing/example/dw-files/currency"
 
     destination_topic = "dimcurrency_spark_stream_dwfiles"
 
 
     landing_table = spark.readStream.options(header='False',delimiter='|').csv(origin_folder, schema=schema)
+
+    landing_table = landing_table.select(
+        to_json(
+            struct(
+                col('CurrencyKey').cast(StringType()).alias('CurrencyKey'),
+                col('CurrencyAlternateKey').cast(StringType()),
+                col('CurrencyName').cast(StringType())
+            )
+        ).alias("value")
+    )
 
     # trigger using processing time = interval of the micro-batches
     # formatting to deliver to apache kafka payload (value)
@@ -48,8 +59,8 @@ if __name__ == '__main__':
         .option("topic", destination_topic) \
         .option("checkpointLocation", "checkpoint") \
         .outputMode("append") \
-        .trigger(processingTime="15 seconds") \
-        .start()
+        .trigger(processingTime="60 seconds") \
+        .start()  \
         
     # monitoring streaming queries
     # structured streaming output info
