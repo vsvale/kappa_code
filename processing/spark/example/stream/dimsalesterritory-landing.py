@@ -2,7 +2,7 @@
 from settings import BOOTSTRAP_SERVERS
 from delta.tables import DeltaTable
 from pyspark.sql import SparkSession
-from schemas import schemadimcurrency
+from schemas import schemadimsalesterritory
 from pyspark.sql.functions import *
 
 # main spark program
@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # init spark session
     spark = SparkSession \
             .builder \
-            .appName("dimcurrency-stream") \
+            .appName("dimsalesterritory-stream") \
             .config("spark.hadoop.fs.s3a.endpoint", "http://172.18.0.2:8686") \
             .config("spark.hadoop.fs.s3a.access.key", "4jVszc6Opmq7oaOu") \
             .config("spark.hadoop.fs.s3a.secret.key", "ebUjidNSHktNJOhaqeRseqmEr9IEBggD") \
@@ -31,20 +31,20 @@ if __name__ == '__main__':
     spark.sparkContext.setLogLevel("INFO")
 
     # refer to schema.py file
-    schema = schemadimcurrency
+    schema = schemadimsalesterritory
     
-    origin_folder = "s3a://landing/example/dw-files/currency"
+    origin_folder = "s3a://landing/example/dw-files/salesterritory"
 
-    destination_topic = "dimcurrency_spark_stream_dwfiles"
+    destination_topic = "dimsalesterritory_spark_stream_dwfiles"
 
-
-    landing_table = spark.readStream.options(header='False',delimiter=',').csv(origin_folder, schema=schema)
+    landing_table = spark.readStream.options(header='False',delimiter='|').csv(origin_folder, schema=schema)
     landing_table.printSchema()
     print(landing_table.isStreaming)
+
     # trigger using processing time = interval of the micro-batches
     # formatting to deliver to apache kafka payload (value)
     write_into_topic = landing_table \
-        .selectExpr("CAST(trim(CurrencyKey) AS STRING) AS key", "to_json(struct(*)) AS value") \
+        .selectExpr("CAST(trim(SalesTerritoryKey) AS STRING) AS key", "to_json(struct(*)) AS value") \
         .writeStream \
         .format("kafka") \
         .option("kafka.bootstrap.servers", BOOTSTRAP_SERVERS) \
