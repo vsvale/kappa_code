@@ -83,10 +83,11 @@ if __name__ == '__main__':
             .whenMatchedUpdateAll()\
             .whenNotMatchedInsertAll()
     else:
-        stream_table.write.mode(write_delta_mode)\
+        stream_table.writeStream\
             .format("delta")\
-            .partitionBy("load_date")\
-            .save(destination_folder)
+            .outputMode("append")\
+            .option("checkpointLocation", "checkpoint") \
+            .start(destination_folder)
 
     # block until query is terminated
-    write_into_topic.awaitTermination()
+    stream_table.awaitTermination()

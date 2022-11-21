@@ -5,8 +5,8 @@
 ## During Tests
 kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimcurrency-landing.yaml -n processing;
 kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimproductsubcategory-landing.yaml -n processing;
-
 kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimdate-landing.yaml -n processing;
+
 kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimpromotion-landing.yaml -n processing;
 kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimsalesterritory-landing.yaml -n processing;
 kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/factinternetsalesreason-landing.yaml -n processing;
@@ -23,7 +23,6 @@ kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/mast
 
 kubectl apply -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimcurrency-landing.yaml -n processing;
 kubectl apply -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimproductsubcategory-landing.yaml -n processing;
-
 kubectl apply -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimdate-landing.yaml -n processing;
 kubectl apply -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimpromotion-landing.yaml -n processing;
 kubectl apply -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimsalesterritory-landing.yaml -n processing;

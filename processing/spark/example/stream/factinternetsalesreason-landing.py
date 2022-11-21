@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # trigger using processing time = interval of the micro-batches
     # formatting to deliver to apache kafka payload (value)
     write_into_topic = landing_table \
-        .selectExpr("to_json(struct(*)) AS value") \
+        .selectExpr("CAST(concat(SalesOrderNumber,cast(SalesOrderLineNumber AS STRING),cast(SalesReasonKey AS STRING)) AS STRING) AS key", "to_json(struct(*)) AS value") \
         .writeStream \
         .format("kafka") \
         .option("kafka.bootstrap.servers", BOOTSTRAP_SERVERS) \
