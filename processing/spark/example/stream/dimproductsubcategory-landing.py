@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     destination_topic = "dimproductsubcategory_spark_stream_dwfiles"
 
-    landing_table = spark.readStream.options(header='False',delimiter='|').csv(origin_folder, schema=schema)
+    landing_table = spark.readStream.options(header='False',delimiter=',').csv(origin_folder, schema=schema)
     landing_table.printSchema()
     print(landing_table.isStreaming)
 
