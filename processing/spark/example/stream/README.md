@@ -2,6 +2,7 @@
 - docker login
 - docker build -f ./processing/spark/example/stream/Dockerfile ./processing/spark/example/stream -t vsvale/example-stream:1.0.0; docker push vsvale/example-stream:1.0.0;
 
+# Landing
 ## During Tests
 kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimcurrency-landing.yaml -n processing;
 kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimproductsubcategory-landing.yaml -n processing;
@@ -32,3 +33,16 @@ kubectl apply -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/maste
 - kubens processing
 - kubectl get pod
 - kubectl logs example-dimproductsubcategory-landing-driver
+
+# Kafka to gold
+## Debug
+- docker build -f ./processing/spark/example/stream/Dockerfile ./processing/spark/example/stream -t vsvale/example-stream:1.0.0; docker push vsvale/example-stream:1.0.0;
+
+kubectl delete -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimcurrency-kafka-gold.yaml
+
+
+##
+kubectl apply -f https://raw.githubusercontent.com/vsvale/kappa_k8s_config/master/repository/yamls/processing/spark/example/dimcurrency-kafka-gold.yaml
+
+
+

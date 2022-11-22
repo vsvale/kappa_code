@@ -43,24 +43,27 @@ if __name__ == '__main__':
     # stream operation mode
     # latest offset recorded on kafka and spark
     stream_table= spark \
-        .readStream \
+        .read\
         .format("kafka") \
         .option("kafka.bootstrap.servers", BOOTSTRAP_SERVERS) \
         .option("subscribe", input_topic) \
-        .option("startingOffsets", "latest") \
+        .option("startingOffsets", "earliest") \
         .option("checkpoint", "checkpoint") \
         .load() \
-        .select(from_json(col("value").cast("string"), schema, jsonOptions))
+        .select(from_json(col("value").cast("string"), schema, jsonOptions).alias("table_tpc"))
 
-# batch
-#    stream_table= spark \
-#        .read \
-#        .format("kafka") \
-#        .option("kafka.bootstrap.servers", BOOTSTRAP_SERVERS) \
-#        .option("subscribe", input_topic) \
-#        .option("startingOffsets", "earliest") \
-#        .option("checkpoint", "checkpoint") \
-#        .load()
+    stream_table.printSchema()
+
+    stream_table = (stream_table
+    .select(
+        col("table_tpc.CurrencyKey").alias("CurrencyKey"),
+        col("table_tpc.CurrencyAlternateKey").alias("CurrencyAlternateKey"),
+        col("table_tpc.CurrencyName").alias("CurrencyName"),
+    )
+    )
+
+    stream_table.show()
+    stream_table.printSchema()
 
     # write to gold
     DeltaTable.createIfNotExists(spark) \
@@ -76,18 +79,16 @@ if __name__ == '__main__':
         dt_table = DeltaTable.forPath(spark, destination_folder)
         dt_table.alias("historical_data")\
             .merge(
-                stream_table.alias("new_data"),
+                gold_table.alias("new_data"),
                 '''
                 historical_data.CurrencyKey = new_data.CurrencyKey 
                 ''')\
             .whenMatchedUpdateAll()\
             .whenNotMatchedInsertAll()
     else:
-        stream_table.writeStream\
+        gold_table.write.mode(write_delta_mode)\
             .format("delta")\
-            .outputMode("append")\
-            .option("checkpointLocation", "checkpoint") \
-            .start(destination_folder)
+            .partitionBy("load_date")\
+            .save(destination_folder)
 
-    # block until query is terminated
-    stream_table.awaitTermination()
+    spark.stop()
