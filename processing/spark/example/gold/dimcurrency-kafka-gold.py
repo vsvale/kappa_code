@@ -86,9 +86,21 @@ if __name__ == '__main__':
             .whenMatchedUpdateAll()\
             .whenNotMatchedInsertAll()
     else:
-        gold_table.write.mode(write_delta_mode)\
+        stream_table.write.mode(write_delta_mode)\
             .format("delta")\
             .partitionBy("load_date")\
             .save(destination_folder)
+
+    #verify count origin vs destination
+    origin_count = stream_table.count()
+
+    destiny = spark.read \
+        .format("delta") \
+        .load(destination_folder)
+    
+    destiny_count = destiny.count()
+
+    if origin_count != destiny_count:
+        raise AssertionError("Counts of origin and destiny are not equal")
 
     spark.stop()
