@@ -65,30 +65,32 @@ if __name__ == '__main__':
     stream_table.show()
     stream_table.printSchema()
 
-    # write to gold
-    DeltaTable.createIfNotExists(spark) \
-        .tableName("dimcurrency") \
-        .addColumn("CurrencyKey", IntegerType()) \
-        .addColumn("CurrencyAlternateKey", StringType()) \
-        .addColumn("CurrencyName", StringType()) \
-        .partitionedBy("CurrencyKey") \
-        .location(destination_folder) \
-        .execute()
+    stream_table 
 
+    # write to gold
     if DeltaTable.isDeltaTable(spark, destination_folder):
         dt_table = DeltaTable.forPath(spark, destination_folder)
         dt_table.alias("historical_data")\
             .merge(
-                gold_table.alias("new_data"),
+                stream_table.alias("new_data"),
                 '''
                 historical_data.CurrencyKey = new_data.CurrencyKey 
                 ''')\
             .whenMatchedUpdateAll()\
             .whenNotMatchedInsertAll()
     else:
-        stream_table.write.mode(write_delta_mode)\
+        DeltaTable.createIfNotExists(spark) \
+        .tableName("dimcurrency") \
+        .addColumn("CurrencyKey", IntegerType()) \
+        .addColumn("CurrencyAlternateKey", StringType()) \
+        .addColumn("CurrencyName", StringType()) \
+        .location(destination_folder) \
+        .execute()
+
+        stream_table.write\
+            .mode(write_delta_mode)\
+            .option("mergeSchema", "true")\
             .format("delta")\
-            .partitionBy("load_date")\
             .save(destination_folder)
 
     #verify count origin vs destination
@@ -99,6 +101,9 @@ if __name__ == '__main__':
         .load(destination_folder)
     
     destiny_count = destiny.count()
+
+    print(origin_count)
+    print(destiny_count)
 
     if origin_count != destiny_count:
         raise AssertionError("Counts of origin and destiny are not equal")
