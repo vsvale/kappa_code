@@ -1,4 +1,4 @@
-# kappa_code
+
 
 ## Install git lfs
 - `git lfs install`
