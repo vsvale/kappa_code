@@ -65,8 +65,6 @@ if __name__ == '__main__':
     stream_table.show()
     stream_table.printSchema()
 
-    stream_table 
-
     # write to gold
     if DeltaTable.isDeltaTable(spark, destination_folder):
         dt_table = DeltaTable.forPath(spark, destination_folder)
