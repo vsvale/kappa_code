@@ -1,9 +1,9 @@
 # import libraries
-from settings import *
+from kappa_code.processing.spark.example.settings import *
 from pyspark.sql.functions import *
 from delta.tables import DeltaTable
 from pyspark.sql import SparkSession
-from schemas import schemadimcurrency
+from kappa_code.processing.spark.example.schemas import schemadimcurrency
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType, TimestampType, DateType
 
 # main spark program
@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # init spark session
     spark = SparkSession \
             .builder \
-            .appName("dimcurrency-gold") \
+            .appName("example-dimcurrency-silver") \
             .config("spark.hadoop.fs.s3a.endpoint", "http://172.18.0.2:8686") \
             .config("spark.hadoop.fs.s3a.access.key", "4jVszc6Opmq7oaOu") \
             .config("spark.hadoop.fs.s3a.secret.key", "ebUjidNSHktNJOhaqeRseqmEr9IEBggD") \
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # refer to schemas.py file
     schema = schemadimcurrency
     input_topic = "dimcurrency_spark_stream_dwfiles"
-    destination_folder = "s3a://lakehouse/gold/example/dimcurrency/"
+    destination_folder = "s3a://lakehouse/silver/example/dimcurrency/"
     write_delta_mode = "overwrite"
     destination_table = "public.dimcurrency"
     jsonOptions = {"timestampFormat": "yyyy-MM-dd'T'HH:mm:ss.sss'Z'"}
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     stream_table.show()
     stream_table.printSchema()
 
-    # write to gold
+    # write to silver
     if DeltaTable.isDeltaTable(spark, destination_folder):
         dt_table = DeltaTable.forPath(spark, destination_folder)
         dt_table.alias("historical_data")\

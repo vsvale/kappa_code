@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # init spark session
     spark = SparkSession \
             .builder \
-            .appName("dimcurrency-ysql") \
+            .appName("example-dimcurrency-ysql") \
             .config("spark.hadoop.fs.s3a.endpoint", "http://172.18.0.2:8686") \
             .config("spark.hadoop.fs.s3a.access.key", "4jVszc6Opmq7oaOu") \
             .config("spark.hadoop.fs.s3a.secret.key", "ebUjidNSHktNJOhaqeRseqmEr9IEBggD") \
@@ -39,14 +39,32 @@ if __name__ == '__main__':
 
     # read from gold
     gold_table = spark.read.format("delta").load(input_folder)
-
     gold_table.show()
     gold_table.printSchema()
 
+
+
+    # read destiny
+    destination_df = spark.read.jdbc(YUGABYTEDB_JDBC, destination_table,properties={"user": YUGABYTEDB_USER, "password": YUGABYTEDB_PSWD})
+    destination_df.show()
+    destination_df.printSchema()
+
+    insert_df = destination_df.alias("historical_data")\
+            .merge(
+                gold_table.alias("new_data"),
+                '''
+                historical_data.CurrencyKey = new_data.CurrencyKey 
+                ''')\
+            .whenMatchedUpdateAll()\
+            .whenNotMatchedInsertAll()
+
+
+    insert_df = insert_df.orderBy(col('currencyKey')).distinct()
+
     # write to yugabyte
-    gold_table.write \
-    .jdbc(YUGABYTEDB_JDBC, destination_table,
-          properties={"user": YUGABYTEDB_USER, "password": YUGABYTEDB_PSWD}).mode("overwrite").load()
+    insert_df.write \
+    .jdbc(YUGABYTEDB_JDBC, destination_table, mode="append",
+          properties={"user": YUGABYTEDB_USER, "password": YUGABYTEDB_PSWD}).insertInto(destination_table)
           
     #verify count origin vs destination
     #origin_count = gold_table.count()
